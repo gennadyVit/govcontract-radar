@@ -1,4 +1,9 @@
 .env
+rsa_key.p8
 __pycache__/
 *.pyc
 .DS_Store
+logs/
+dbt/target/
+dbt/dbt_packages/
+dbt/logs/

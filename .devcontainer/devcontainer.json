@@ -4,5 +4,5 @@
   "features": {
     "ghcr.io/devcontainers/features/docker-in-docker:2": {}
   },
-  "postCreateCommand": "pip install -r requirements.txt && curl -sSL install.astronomer.io | sudo bash -s"
+  "postCreateCommand": "bash .devcontainer/setup.sh"
 }

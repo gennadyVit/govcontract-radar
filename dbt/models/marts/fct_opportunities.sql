@@ -4,36 +4,47 @@ with source as (
     select * from GOVCONTRACT.RAW.STG_SAM_OPPORTUNITIES
 ),
 
+dim_agency as (
+    select * from GOVCONTRACT.DIMENSIONS.DIM_AGENCY
+),
+
 cleaned as (
     select
-        NOTICE_ID,
-        TITLE,
-        SOLICITATION_NUM,
+        s.NOTICE_ID,
+        s.TITLE,
+        s.SOLICITATION_NUM,
 
-        -- extract top-level agency from the full path
-        SPLIT_PART(AGENCY, '.', 1)                          as AGENCY,
-        SPLIT_PART(AGENCY, '.', 2)                          as SUB_AGENCY,
-        TYPE                                                as NOTICE_TYPE,
-        SET_ASIDE,
-        NAICS_CODE,
-        TRY_TO_DATE(POSTED_DATE)                            as POSTED_DATE,
-        RESPONSE_DEADLINE,
+        -- FK to dim_agency (replaces raw agency text)
+        a.AGENCY_ID,
 
-        -- days until deadline from today
-        DATEDIFF('day', CURRENT_DATE(), RESPONSE_DEADLINE) as DAYS_UNTIL_DEADLINE,
-            CASE
-            WHEN DATEDIFF('day', CURRENT_DATE(), RESPONSE_DEADLINE) < 7  THEN 'Closing Soon'
-            WHEN DATEDIFF('day', CURRENT_DATE(), RESPONSE_DEADLINE) < 30 THEN 'This Month'
-            ELSE 'Future'
-        END as DEADLINE_CATEGORY,
-        OFFICE_CITY,
-        OFFICE_STATE,
-        UI_LINK,
-        LOADED_AT
+        -- keep raw agency fields for display/debugging
+        SPLIT_PART(s.AGENCY, '.', 1) as AGENCY_NAME,
+        SPLIT_PART(s.AGENCY, '.', 2) as SUB_AGENCY_NAME,
 
-    from source
-    where ACTIVE = 'Yes'
-      and TYPE in ('Solicitation', 'Presolicitation', 'Sources Sought')
+        s.TYPE                                                as NOTICE_TYPE,
+        s.SET_ASIDE,
+        s.NAICS_CODE,
+        TRY_TO_DATE(s.POSTED_DATE)                           as POSTED_DATE,
+        s.RESPONSE_DEADLINE,
+
+        DATEDIFF('day', CURRENT_DATE(), s.RESPONSE_DEADLINE) as DAYS_UNTIL_DEADLINE,
+        case
+            when DATEDIFF('day', CURRENT_DATE(), s.RESPONSE_DEADLINE) < 7  then 'Closing Soon'
+            when DATEDIFF('day', CURRENT_DATE(), s.RESPONSE_DEADLINE) < 30 then 'This Month'
+            else 'Future'
+        end as DEADLINE_CATEGORY,
+
+        s.OFFICE_CITY,
+        s.OFFICE_STATE,
+        s.UI_LINK,
+        s.LOADED_AT
+
+    from source s
+    left join dim_agency a
+        on a.AGENCY_NAME    = SPLIT_PART(s.AGENCY, '.', 1)
+        and a.SUB_AGENCY_NAME = SPLIT_PART(s.AGENCY, '.', 2)
+    where s.ACTIVE = 'Yes'
+      and s.TYPE in ('Solicitation', 'Presolicitation', 'Sources Sought')
 )
 
 select * from cleaned

@@ -4,30 +4,52 @@ with source as (
     select * from GOVCONTRACT.RAW.STG_USASPENDING_AWARDS
 ),
 
+dim_agency as (
+    select * from GOVCONTRACT.DIMENSIONS.DIM_AGENCY
+),
+
+dim_vendor as (
+    select * from GOVCONTRACT.DIMENSIONS.DIM_VENDOR
+),
+
 cleaned as (
     select
-        AWARD_ID,
-        INTERNAL_ID,
-        RECIPIENT_NAME,
-        AWARD_AMOUNT,
-        CASE
-            WHEN AWARD_AMOUNT >= 1000000 THEN 'Large'
-            WHEN AWARD_AMOUNT >= 100000  THEN 'Medium'
-            ELSE 'Small'
-        END as AWARD_SIZE_CATEGORY,
-        DESCRIPTION,
-        AWARDING_AGENCY,
-        AWARDING_SUB_AGENCY,
-        AWARD_TYPE,
-        START_DATE,
-        END_DATE,
-        DATEDIFF('day', START_DATE, END_DATE) as CONTRACT_LENGTH_DAYS,
-        POP_COUNTRY_CODE,
-        POP_STATE_CODE,
-        LOADED_AT
+        s.AWARD_ID,
+        s.INTERNAL_ID,
 
-    from source
-    where AWARD_AMOUNT is not null
+        -- FK to dim_agency (replaces raw agency text)
+        a.AGENCY_ID,
+
+        -- FK to dim_vendor (replaces raw recipient text)
+        v.VENDOR_ID,
+
+        s.AWARD_AMOUNT,
+        case
+            when s.AWARD_AMOUNT >= 1000000 then 'Large'
+            when s.AWARD_AMOUNT >= 100000  then 'Medium'
+            else 'Small'
+        end as AWARD_SIZE_CATEGORY,
+
+        s.DESCRIPTION,
+        s.AWARD_TYPE,
+        s.NAICS_CODE,
+        s.IS_SMALL_BUSINESS_AWARD,
+        s.SOURCE_ALL_MARKET_PULL,
+        s.SOURCE_SMALL_BUSINESS_PULL,
+        s.START_DATE,
+        s.END_DATE,
+        DATEDIFF('day', s.START_DATE, s.END_DATE) as CONTRACT_LENGTH_DAYS,
+        s.POP_COUNTRY_CODE,
+        s.POP_STATE_CODE,
+        s.LOADED_AT
+
+    from source s
+    left join dim_agency a
+        on a.AGENCY_NAME  = s.AWARDING_AGENCY
+        and a.SUB_AGENCY_NAME = s.AWARDING_SUB_AGENCY
+    left join dim_vendor v
+        on v.VENDOR_NAME = s.RECIPIENT_NAME
+    where s.AWARD_AMOUNT is not null
 )
 
 select * from cleaned

@@ -45,6 +45,7 @@ cleaned as (
         and a.SUB_AGENCY_NAME = SPLIT_PART(s.AGENCY, '.', 2)
     where s.ACTIVE = 'Yes'
       and s.TYPE in ('Solicitation', 'Presolicitation', 'Sources Sought')
+      and s.NAICS_CODE in ('541511', '541512', '541519')
 )
 
 select * from cleaned

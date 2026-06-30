@@ -17,15 +17,15 @@
 */
 
 with opportunities as (
-    select * from GOVCONTRACT.MARTS.FCT_OPPORTUNITIES
+    select * from {{ ref('fct_opportunities') }}
 ),
 
 awards as (
-    select * from GOVCONTRACT.MARTS.FCT_AWARDS
+    select * from {{ ref('fct_awards') }}
 ),
 
 naics as (
-    select * from GOVCONTRACT.DIMENSIONS.DIM_NAICS
+    select * from {{ ref('dim_naics') }}
 ),
 
 -- pre-aggregate market stats per NAICS code from historical awards

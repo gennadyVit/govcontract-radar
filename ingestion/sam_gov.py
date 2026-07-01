@@ -31,7 +31,7 @@ def create_staging_table(cursor):
     """)
 
 
-def fetch_opportunities(posted_from="01/01/2025", posted_to="12/31/2025"):
+def fetch_opportunities(posted_from="04/01/2026", posted_to="06/30/2026"):
     records = []
     offset = 0
     limit = 100

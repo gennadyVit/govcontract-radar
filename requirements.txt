@@ -1,7 +1,4 @@
-apache-airflow
-dbt-snowflake
-snowflake-connector-python
-streamlit
-requests
-python-dotenv
-pandas
+# This file is intentionally minimal.
+# Use requirements-api.txt for the FastAPI service.
+# Use requirements-streamlit.txt for the Streamlit service.
+# Use requirements-dev.txt for local development.

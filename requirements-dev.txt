@@ -1,0 +1,11 @@
+dbt-snowflake
+apache-airflow
+snowflake-connector-python
+streamlit
+requests
+python-dotenv
+pandas
+fastapi
+uvicorn[standard]
+pydantic
+openai

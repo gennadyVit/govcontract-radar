@@ -6,7 +6,8 @@ from cryptography.hazmat.primitives import serialization
 def load_private_key():
     key_env = os.getenv("SNOWFLAKE_PRIVATE_KEY")
     if key_env:
-        return serialization.load_pem_private_key(key_env.encode(), password=None)
+        key_pem = key_env.replace("\\n", "\n")
+        return serialization.load_pem_private_key(key_pem.encode(), password=None)
     with open("rsa_key.p8", "rb") as f:
         return serialization.load_pem_private_key(f.read(), password=None)
 

@@ -4,7 +4,7 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
 from api.scoring.fit_score import score_opportunity
-from api.scoring.embeddings import compute_capability_similarity
+from api.scoring.embeddings import compute_capability_similarity, get_profile_embedding
 
 load_dotenv()
 
@@ -73,9 +73,11 @@ def score_opportunities(profile: CompanyProfile, limit: int = 50, min_score: int
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Snowflake error: {str(e)}")
 
+    profile_embedding = get_profile_embedding(profile_dict)
+
     results = []
     for opp in opportunities:
-        similarity = compute_capability_similarity(opp, profile_dict)
+        similarity = compute_capability_similarity(opp, profile_dict, profile_embedding=profile_embedding)
         result = score_opportunity(opp, profile_dict, capability_similarity=similarity)
         if result.overall_fit_score >= min_score:
             results.append(result)

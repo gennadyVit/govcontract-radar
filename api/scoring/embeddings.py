@@ -33,27 +33,39 @@ def cosine_similarity(a: list[float], b: list[float]) -> float:
     return dot / (norm_a * norm_b) if norm_a and norm_b else 0.0
 
 
-def compute_capability_similarity(opportunity: dict, profile: dict) -> float | None:
-    """
-    Returns cosine similarity (0-1) between opportunity text and company profile,
-    or None if Azure OpenAI is not configured (fit_score.py will use stub value).
-    """
+def get_profile_embedding(profile: dict) -> list[float] | None:
+    """Compute profile embedding once to reuse across all opportunities."""
     if not AZURE_ENABLED or _get_client() is None:
         return None
-
-    opp_text = f"{opportunity.get('TITLE', '')} {opportunity.get('DESCRIPTION', '')}".strip()
     profile_text = (
         profile.get("company_summary", "") + " " +
         " ".join(profile.get("capabilities", [])) + " " +
         " ".join(profile.get("keywords_target", []))
     ).strip()
+    if not profile_text:
+        return None
+    return get_embedding(profile_text)
 
-    if not opp_text or not profile_text:
+
+def compute_capability_similarity(opportunity: dict, profile: dict, profile_embedding: list[float] | None = None) -> float | None:
+    """
+    Returns cosine similarity (0-1) between opportunity text and company profile,
+    or None if Azure OpenAI is not configured (fit_score.py will use stub value).
+    Pass profile_embedding to avoid recomputing it for every opportunity.
+    """
+    if not AZURE_ENABLED or _get_client() is None:
+        return None
+
+    opp_text = f"{opportunity.get('TITLE', '')} {opportunity.get('DESCRIPTION', '')}".strip()
+    if not opp_text:
+        return None
+
+    if profile_embedding is None:
+        profile_embedding = get_profile_embedding(profile)
+    if not profile_embedding:
         return None
 
     opp_embedding = get_embedding(opp_text)
-    profile_embedding = get_embedding(profile_text)
-
-    if opp_embedding and profile_embedding:
+    if opp_embedding:
         return cosine_similarity(opp_embedding, profile_embedding)
     return None

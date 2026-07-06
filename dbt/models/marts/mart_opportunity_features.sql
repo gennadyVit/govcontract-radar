@@ -1,6 +1,7 @@
 {{
     config(
-        materialized='table',
+        materialized='incremental',
+        unique_key='NOTICE_ID',
         schema='MARTS',
         post_hook="comment on table {{ this }} is 'Denormalized scoring-ready table: one row per opportunity with pre-computed market features from historical awards. Consumers (scoring engine, dashboard) read this instead of joining 5 tables at query time.'"
     )
@@ -52,6 +53,14 @@ naics_market_stats as (
 )
 
 -- one row per opportunity, enriched with market context
+-- incremental: only process opportunities loaded since the last dbt run
+{% if is_incremental() %}
+, new_notices as (
+    select NOTICE_ID from opportunities
+    where LOADED_AT > (select MAX(LOADED_AT) from {{ this }})
+)
+{% endif %}
+
 select
     -- opportunity identifiers
     o.NOTICE_ID,
@@ -59,6 +68,7 @@ select
     o.SOLICITATION_NUM,
     o.DESCRIPTION,
     o.UI_LINK,
+    TRUE                            as ACTIVE,
 
     -- agency
     o.AGENCY_ID,
@@ -94,8 +104,16 @@ select
     m.SB_AWARD_COUNT                as NAICS_SB_AWARD_COUNT,
     m.SB_WIN_RATE_PCT               as NAICS_SB_WIN_RATE_PCT,
 
+    -- pre-computed embedding vector (populated by ingestion/precompute_embeddings.py)
+    -- NULL until embed step runs; preserved across dbt rebuilds via explicit SELECT
+    NULL::VARIANT                   as EMBEDDING,
+
     o.LOADED_AT
 
 from opportunities o
 left join naics_market_stats m on o.NAICS_CODE = m.NAICS_CODE
 left join naics n on o.NAICS_CODE = n.NAICS_CODE
+
+{% if is_incremental() %}
+inner join new_notices nn on o.NOTICE_ID = nn.NOTICE_ID
+{% endif %}

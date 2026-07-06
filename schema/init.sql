@@ -1,8 +1,10 @@
--- Full schema initialization for GOVCONTRACT.RAW
--- Run this once in a new environment before any ingestion.
--- dbt manages DIMENSIONS and MARTS schemas separately (run `dbt run` after this).
+-- Full schema initialization for GOVCONTRACT
+-- Run this once in a new environment before any ingestion or dbt run.
+-- dbt manages all table contents — this only creates the containers.
 
 CREATE DATABASE IF NOT EXISTS GOVCONTRACT;
+
+-- ── RAW layer ─────────────────────────────────────────────────────────────────
 CREATE SCHEMA IF NOT EXISTS GOVCONTRACT.RAW;
 
 -- SAM.gov opportunities (ingestion/sam_gov.py)
@@ -44,3 +46,16 @@ CREATE TABLE IF NOT EXISTS GOVCONTRACT.RAW.STG_USASPENDING_AWARDS (
     SOURCE_SMALL_BUSINESS_PULL     BOOLEAN,
     LOADED_AT                      TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP()
 );
+
+-- ── DIMENSIONS layer ──────────────────────────────────────────────────────────
+-- Tables are populated by dbt. Schema must exist before `dbt run`.
+CREATE SCHEMA IF NOT EXISTS GOVCONTRACT.DIMENSIONS;
+
+-- ── MARTS layer ───────────────────────────────────────────────────────────────
+-- Tables are populated by dbt. Schema must exist before `dbt run`.
+CREATE SCHEMA IF NOT EXISTS GOVCONTRACT.MARTS;
+
+-- EMBEDDING column — added after initial dbt run to store pre-computed vectors.
+-- dbt preserves this column because mart_opportunity_features.sql selects it explicitly.
+-- If rebuilding from scratch, run `dbt run` first, then this ALTER:
+--   ALTER TABLE GOVCONTRACT.MARTS.MART_OPPORTUNITY_FEATURES ADD COLUMN IF NOT EXISTS EMBEDDING VARIANT;

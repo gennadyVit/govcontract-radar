@@ -37,12 +37,12 @@ with st.form("profile_form"):
             value=", ".join(st.session_state.profile.get("certifications", [])),
             placeholder="8a, SDVOSB, WOSB",
         )
+        clearance_options = ["None", "Public Trust", "Secret", "Top Secret", "Top Secret/SCI"]
+        saved_clearance = st.session_state.profile.get("clearance", "None") or "None"
         clearance = st.selectbox(
             "Clearance level",
-            ["None", "Public Trust", "Secret", "Top Secret", "Top Secret/SCI"],
-            index=["None", "Public Trust", "Secret", "Top Secret", "Top Secret/SCI"].index(
-                st.session_state.profile.get("clearance", "None")
-            ),
+            clearance_options,
+            index=clearance_options.index(saved_clearance),
         )
 
     with col2:
@@ -85,12 +85,12 @@ with st.form("profile_form"):
             placeholder="construction\nhardware\nlogistics",
             height=100,
         )
+        prime_sub_options = ["either", "prime", "sub"]
+        saved_prime_or_sub = st.session_state.profile.get("prime_or_sub", "either") or "either"
         prime_or_sub = st.selectbox(
             "Prime or sub?",
-            ["either", "prime", "sub"],
-            index=["either", "prime", "sub"].index(
-                st.session_state.profile.get("prime_or_sub", "either")
-            ),
+            prime_sub_options,
+            index=prime_sub_options.index(saved_prime_or_sub),
         )
 
     submitted = st.form_submit_button("Save Profile & Score", type="primary")

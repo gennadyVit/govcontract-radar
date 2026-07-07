@@ -1,6 +1,11 @@
 """
-One-time script to pre-compute Azure OpenAI embeddings for all opportunities
-and store them in Snowflake. Run this after new data is ingested.
+Pre-compute Azure OpenAI embeddings for new opportunities and store in Snowflake.
+Called by the Airflow DAG after each dbt run (only rows where EMBEDDING IS NULL).
+
+Embedding model: text-embedding-3-small (Azure OpenAI)
+Chosen over Snowflake Cortex (e5-base-v2) because:
+  - Newer architecture — OpenAI's 3rd-gen models outperform e5-base-v2 on MTEB benchmarks
+  - Higher dimensionality (1536-d vs 768-d) → finer-grained similarity for niche NAICS codes
 """
 import os
 import json

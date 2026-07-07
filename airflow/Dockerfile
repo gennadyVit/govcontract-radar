@@ -4,7 +4,7 @@ USER root
 RUN apt-get update && apt-get install -y git && apt-get clean
 
 # Install dbt-snowflake
-RUN pip install --no-cache-dir dbt-snowflake==1.8.0
+RUN pip install --no-cache-dir dbt-snowflake==1.9.0
 
 USER airflow
 

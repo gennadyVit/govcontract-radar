@@ -1,0 +1,64 @@
+name: Build and deploy Streamlit UI to Azure Web App - govcontract-ui
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "streamlit/**"
+      - "requirements-streamlit.txt"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python version
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m venv antenv
+          source antenv/bin/activate
+          pip install -r requirements-streamlit.txt
+
+      - name: Upload artifact for deployment jobs
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-app
+          path: |
+            .
+            !antenv/
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Download artifact from build job
+        uses: actions/download-artifact@v4
+        with:
+          name: python-app
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_9BDCAC8ECB2F47328586632B35F9C63A }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_14D109E23B6E4485B7980BEAC052D304 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_C50180A01B164D3CB390D3CB03C4E5AC }}
+
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: 'govcontract-ui'
+          slot-name: 'Production'

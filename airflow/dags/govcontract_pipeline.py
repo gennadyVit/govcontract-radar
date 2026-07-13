@@ -24,7 +24,7 @@ default_args = {
 with DAG(
     dag_id="govcontract_daily_pipeline",
     description="Ingest → dbt → embed → score → digest",
-    schedule_interval="0 6 * * *",  # 6 AM UTC daily
+    schedule_interval="0 6 * * 1",  # Monday 6 AM UTC
     start_date=datetime(2026, 7, 1),
     catchup=False,
     default_args=default_args,

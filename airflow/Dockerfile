@@ -13,6 +13,15 @@ RUN echo '#!/bin/bash\n/opt/dbt-venv/bin/dbt "$@"' > /usr/local/bin/dbt && \
 
 USER airflow
 
+# Set static admin credentials so password doesn't regenerate on each restart
+ENV _AIRFLOW_WWW_USER_CREATE=true
+ENV _AIRFLOW_WWW_USER_USERNAME=admin
+ENV _AIRFLOW_WWW_USER_PASSWORD=GovContract2026!
+ENV _AIRFLOW_WWW_USER_FIRSTNAME=Admin
+ENV _AIRFLOW_WWW_USER_LASTNAME=User
+ENV _AIRFLOW_WWW_USER_EMAIL=yezavit@yahoo.com
+ENV _AIRFLOW_WWW_USER_ROLE=Admin
+
 # Copy project code into image
 COPY --chown=airflow:root ingestion/ /opt/airflow/govcontract/ingestion/
 COPY --chown=airflow:root airflow/dags/ /opt/airflow/dags/

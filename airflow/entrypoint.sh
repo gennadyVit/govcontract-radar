@@ -13,7 +13,7 @@ airflow users create \
     --role Admin \
     --email yezavit@yahoo.com || true
 
-airflow users set-password \
+airflow users reset-password \
     --username admin \
     --password GovContract2026x
 

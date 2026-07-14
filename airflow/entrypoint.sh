@@ -1,20 +1,24 @@
 #!/bin/bash
 set -e
 
-# Initialize the metadata DB
+# Initialize DB
 airflow db migrate
 
-# Create admin user with static password (idempotent)
+# Create admin user - force password reset if user exists
 airflow users create \
     --username admin \
-    --password GovContract2026! \
+    --password GovContract2026x \
     --firstname Admin \
     --lastname User \
     --role Admin \
-    --email yezavit@yahoo.com \
-    2>/dev/null || airflow users set-password \
-        --username admin \
-        --password GovContract2026!
+    --email yezavit@yahoo.com || true
 
-# Start all Airflow components
-exec airflow standalone
+airflow users set-password \
+    --username admin \
+    --password GovContract2026x
+
+# Start scheduler in background
+airflow scheduler &
+
+# Start webserver in foreground
+exec airflow webserver --port 8080

@@ -17,6 +17,8 @@ def fetch_and_load(cursor, posted_from="04/01/2026", posted_to="06/30/2026"):
     offset = 0
     limit = 100
     total_loaded = 0
+    rate_limit_retries = 0
+    MAX_RATE_LIMIT_RETRIES = 3
 
     while True:
         params = {
@@ -28,9 +30,14 @@ def fetch_and_load(cursor, posted_from="04/01/2026", posted_to="06/30/2026"):
         }
         response = requests.get(SAM_URL, params=params)
         if response.status_code == 429:
-            print(f"  Rate limited at {total_loaded} records — waiting 60s...")
-            time.sleep(60)
+            rate_limit_retries += 1
+            if rate_limit_retries >= MAX_RATE_LIMIT_RETRIES:
+                print(f"  Rate limited {MAX_RATE_LIMIT_RETRIES}x in a row — stopping with {total_loaded} records loaded.")
+                break
+            print(f"  Rate limited (attempt {rate_limit_retries}/{MAX_RATE_LIMIT_RETRIES}) — waiting 10s...")
+            time.sleep(10)
             continue
+        rate_limit_retries = 0
         response.raise_for_status()
         data = response.json()
         batch = data.get("opportunitiesData", [])

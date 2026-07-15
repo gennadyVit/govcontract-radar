@@ -1,0 +1,512 @@
+<title>GovContract Radar — Scoring Model</title>
+<style>
+  :root {
+    --bg: #F7F8FA;
+    --surface: #FFFFFF;
+    --border: #E2E5EC;
+    --text: #1A1D24;
+    --muted: #6B7280;
+    --accent: #1B4FD8;
+    --accent-soft: #EEF2FF;
+    --pursue: #166534;
+    --pursue-bg: #DCFCE7;
+    --watch: #92400E;
+    --watch-bg: #FEF3C7;
+    --nobid: #991B1B;
+    --nobid-bg: #FEE2E2;
+    --rule: #CBD5E1;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0F1117;
+      --surface: #1A1D24;
+      --border: #2D3344;
+      --text: #E8EAF0;
+      --muted: #8B92A5;
+      --accent: #6B8EF5;
+      --accent-soft: #1B2347;
+      --pursue: #4ADE80;
+      --pursue-bg: #052E16;
+      --watch: #FCD34D;
+      --watch-bg: #1C1409;
+      --nobid: #F87171;
+      --nobid-bg: #1C0A0A;
+      --rule: #2D3344;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #0F1117;
+    --surface: #1A1D24;
+    --border: #2D3344;
+    --text: #E8EAF0;
+    --muted: #8B92A5;
+    --accent: #6B8EF5;
+    --accent-soft: #1B2347;
+    --pursue: #4ADE80;
+    --pursue-bg: #052E16;
+    --watch: #FCD34D;
+    --watch-bg: #1C1409;
+    --nobid: #F87171;
+    --nobid-bg: #1C0A0A;
+    --rule: #2D3344;
+  }
+
+  :root[data-theme="light"] {
+    --bg: #F7F8FA;
+    --surface: #FFFFFF;
+    --border: #E2E5EC;
+    --text: #1A1D24;
+    --muted: #6B7280;
+    --accent: #1B4FD8;
+    --accent-soft: #EEF2FF;
+    --pursue: #166534;
+    --pursue-bg: #DCFCE7;
+    --watch: #92400E;
+    --watch-bg: #FEF3C7;
+    --nobid: #991B1B;
+    --nobid-bg: #FEE2E2;
+    --rule: #CBD5E1;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    padding: 48px 24px 80px;
+  }
+
+  .page {
+    max-width: 720px;
+    margin: 0 auto;
+  }
+
+  .eyebrow {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 12px;
+  }
+
+  h1 {
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--text);
+    text-wrap: balance;
+    margin-bottom: 8px;
+  }
+
+  .subtitle {
+    color: var(--muted);
+    font-size: 15px;
+    margin-bottom: 40px;
+  }
+
+  hr {
+    border: none;
+    border-top: 1px solid var(--rule);
+    margin: 40px 0;
+  }
+
+  h2 {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 20px;
+  }
+
+  /* Formula block */
+  .formula {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px 28px;
+    margin-bottom: 32px;
+    font-family: "SF Mono", "Fira Code", "Cascadia Code", monospace;
+    font-size: 13px;
+    overflow-x: auto;
+  }
+
+  .formula-line {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    padding: 5px 0;
+  }
+
+  .formula-line:first-child {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    padding-bottom: 12px;
+    margin-bottom: 4px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .weight {
+    color: var(--accent);
+    font-weight: 700;
+    min-width: 38px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .component-name {
+    color: var(--text);
+    min-width: 220px;
+  }
+
+  /* Components table */
+  .components {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+
+  .component {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 4px 16px;
+  }
+
+  .component-title {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text);
+  }
+
+  .component-weight {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--accent);
+    grid-row: 1 / 3;
+    align-self: center;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .component-desc {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  .component-bar-wrap {
+    grid-column: 1 / -1;
+    margin-top: 10px;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .component-bar {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+  }
+
+  /* Gates */
+  .gates {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 32px;
+  }
+
+  .gate {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 13.5px;
+  }
+
+  .gate-cap {
+    font-size: 13px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--accent);
+    min-width: 56px;
+    text-align: right;
+  }
+
+  .gate-label {
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    min-width: 32px;
+  }
+
+  .gate-text {
+    color: var(--text);
+  }
+
+  /* Decisions */
+  .decisions {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+
+  .decision {
+    border-radius: 8px;
+    padding: 16px;
+    text-align: center;
+  }
+
+  .decision.pursue { background: var(--pursue-bg); }
+  .decision.watch  { background: var(--watch-bg); }
+  .decision.nobid  { background: var(--nobid-bg); }
+
+  .decision-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .decision.pursue .decision-label { color: var(--pursue); }
+  .decision.watch  .decision-label { color: var(--watch); }
+  .decision.nobid  .decision-label { color: var(--nobid); }
+
+  .decision-range {
+    font-size: 22px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--text);
+  }
+
+  .decision-desc {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  /* Sample results */
+  .profiles {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .profile-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px 20px;
+  }
+
+  .profile-name {
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 4px;
+  }
+
+  .profile-meta {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+
+  .profile-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+  }
+
+  .stat-badge {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .stat-badge.pursue { background: var(--pursue-bg); color: var(--pursue); }
+  .stat-badge.watch  { background: var(--watch-bg);  color: var(--watch); }
+  .stat-badge.nobid  { background: var(--nobid-bg);  color: var(--nobid); }
+
+  .note {
+    background: var(--accent-soft);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 6px 6px 0;
+    padding: 14px 18px;
+    font-size: 13.5px;
+    color: var(--text);
+    line-height: 1.6;
+  }
+
+  .note strong { color: var(--accent); }
+</style>
+
+<div class="page">
+  <div class="eyebrow">GovContract Radar</div>
+  <h1>Opportunity Scoring Model</h1>
+  <p class="subtitle">How fit scores are computed, gated, and converted to bid decisions.</p>
+
+  <hr>
+
+  <h2>Formula</h2>
+
+  <div class="formula">
+    <div class="formula-line">FIT_SCORE = weighted sum of 5 components (0–100 each)</div>
+    <div class="formula-line"><span class="weight">0.35</span><span class="component-name">× capability_similarity</span></div>
+    <div class="formula-line"><span class="weight">0.25</span><span class="component-name">× past_performance_match</span></div>
+    <div class="formula-line"><span class="weight">0.15</span><span class="component-name">× contract_size_fit</span></div>
+    <div class="formula-line"><span class="weight">0.15</span><span class="component-name">× competition_score</span></div>
+    <div class="formula-line"><span class="weight">0.10</span><span class="component-name">× strategic_fit</span></div>
+  </div>
+
+  <h2>Components</h2>
+
+  <div class="components">
+
+    <div class="component">
+      <div class="component-title">Capability Similarity</div>
+      <div class="component-weight">35%</div>
+      <div class="component-desc">Cosine similarity between the opportunity's embedding and the company profile embedding. Measures whether the company can actually do the work — the most important signal.</div>
+      <div class="component-bar-wrap"><div class="component-bar" style="width:35%"></div></div>
+    </div>
+
+    <div class="component">
+      <div class="component-title">Past Performance Match</div>
+      <div class="component-weight">25%</div>
+      <div class="component-desc">Does the company have prior work in this NAICS code and agency? Federal RFPs formally score past performance — a company with no relevant history is heavily penalized in evaluation.</div>
+      <div class="component-bar-wrap"><div class="component-bar" style="width:25%"></div></div>
+    </div>
+
+    <div class="component">
+      <div class="component-title">Contract Size Fit</div>
+      <div class="component-weight">15%</div>
+      <div class="component-desc">Is the estimated contract value within the company's comfortable range? Too small = margin risk. Too large = execution risk. Scores 100 when within range, degrades proportionally outside it.</div>
+      <div class="component-bar-wrap"><div class="component-bar" style="width:15%"></div></div>
+    </div>
+
+    <div class="component">
+      <div class="component-title">Competition Score</div>
+      <div class="component-weight">15%</div>
+      <div class="component-desc">Small business historical win rate for this NAICS code, plus a bonus if the set-aside type matches company certifications. Harder to win NAICS codes score lower.</div>
+      <div class="component-bar-wrap"><div class="component-bar" style="width:15%"></div></div>
+    </div>
+
+    <div class="component">
+      <div class="component-title">Strategic Fit</div>
+      <div class="component-weight">10%</div>
+      <div class="component-desc">Keyword overlap between the opportunity text and the company's stated focus areas. A weak signal on its own — used as a tiebreaker, not a primary factor.</div>
+      <div class="component-bar-wrap"><div class="component-bar" style="width:10%"></div></div>
+    </div>
+
+  </div>
+
+  <hr>
+
+  <h2>Hard Gates</h2>
+  <p style="font-size:13.5px; color:var(--muted); margin-bottom:16px;">Applied after the weighted score. Gates cap the score — they surface the opportunity with a warning rather than hiding it.</p>
+
+  <div class="gates">
+    <div class="gate">
+      <span class="gate-label">CAP</span>
+      <span class="gate-cap">→ 40</span>
+      <span class="gate-text">Opportunity requires a set-aside (8(a), WOSB, HUBZone, etc.) that the company does not hold</span>
+    </div>
+    <div class="gate">
+      <span class="gate-label">CAP</span>
+      <span class="gate-cap">→ 50</span>
+      <span class="gate-text">Required security clearance exceeds company's current clearance level</span>
+    </div>
+    <div class="gate">
+      <span class="gate-label">CAP</span>
+      <span class="gate-cap">→ 60</span>
+      <span class="gate-text">Onsite-only requirement in a location the company cannot support</span>
+    </div>
+    <div class="gate">
+      <span class="gate-label">CAP</span>
+      <span class="gate-cap">→ 65</span>
+      <span class="gate-text">Contract value is more than 10× the company's maximum comfortable contract size</span>
+    </div>
+  </div>
+
+  <hr>
+
+  <h2>Decision Thresholds</h2>
+
+  <div class="decisions">
+    <div class="decision pursue">
+      <div class="decision-label">Pursue</div>
+      <div class="decision-range">≥ 70</div>
+      <div class="decision-desc">Strong fit — bid</div>
+    </div>
+    <div class="decision watch">
+      <div class="decision-label">Watch</div>
+      <div class="decision-range">50 – 69</div>
+      <div class="decision-desc">Partial fit — monitor</div>
+    </div>
+    <div class="decision nobid">
+      <div class="decision-label">No Bid</div>
+      <div class="decision-range">&lt; 50</div>
+      <div class="decision-desc">Poor fit — skip</div>
+    </div>
+  </div>
+
+  <hr>
+
+  <h2>Sample Results</h2>
+
+  <div class="profiles">
+    <div class="profile-card">
+      <div class="profile-name">TechNova Solutions LLC</div>
+      <div class="profile-meta">Experienced · 5 NAICS · 8(a) · $100K–$10M</div>
+      <div class="profile-stats">
+        <div class="stat-row"><span>PURSUE</span><span class="stat-badge pursue">2</span></div>
+        <div class="stat-row"><span>WATCH</span><span class="stat-badge watch">24</span></div>
+        <div class="stat-row"><span>NO_BID</span><span class="stat-badge nobid">1,361</span></div>
+      </div>
+    </div>
+    <div class="profile-card">
+      <div class="profile-name">BluePath Tech Inc</div>
+      <div class="profile-meta">Startup · 1 NAICS · SBA only · $50K–$500K</div>
+      <div class="profile-stats">
+        <div class="stat-row"><span>PURSUE</span><span class="stat-badge pursue">1</span></div>
+        <div class="stat-row"><span>WATCH</span><span class="stat-badge watch">7</span></div>
+        <div class="stat-row"><span>NO_BID</span><span class="stat-badge nobid">1,379</span></div>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <h2>Future Refinement</h2>
+  <div class="note">
+    <strong>Weights are defaults, not validated.</strong> Once real bid history exists (won/lost outcomes), the 5 component weights can be tuned using logistic regression against actual results. The current values reflect reasonable priors about federal contracting — capability and past performance dominate, keyword matching is a weak signal — but the right weights for a specific company may differ significantly.
+  </div>
+
+</div>

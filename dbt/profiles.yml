@@ -1,0 +1,13 @@
+govcontract:
+  target: prod
+  outputs:
+    prod:
+      type: snowflake
+      account: OYMAFWU-PX50650
+      user: svc_govcontract
+      private_key_path: "{{ env_var('SNOWFLAKE_PRIVATE_KEY_PATH', '../rsa_key.p8') }}"
+      role: SYSADMIN
+      database: GOVCONTRACT
+      warehouse: COMPUTE_WH
+      schema: RAW
+      threads: 4

@@ -114,7 +114,7 @@ def badge(decision):
 
 
 def render_card(row):
-    score = row.get("FIT_SCORE") or 0
+    score = float(row.get("FIT_SCORE") or 0)
     title = row.get("TITLE") or "Untitled"
     agency = row.get("AGENCY_NAME") or ""
     naics = row.get("NAICS_CODE") or ""
@@ -123,26 +123,25 @@ def render_card(row):
     deadline = str(row.get("RESPONSE_DEADLINE") or "")[:10]
     link = row.get("UI_LINK") or ""
     decision = row.get("DECISION") or "NO_BID"
-    description = (row.get("DESCRIPTION") or "")[:300]
+    desc_raw = (row.get("DESCRIPTION") or "")
+    description = desc_raw[:300] if not desc_raw.startswith("http") else ""
 
-    link_html = f'<a href="{link}" target="_blank">View on SAM.gov →</a>' if link else ""
+    decision_colors = {"PURSUE": "🟢", "WATCH": "🟡", "NO_BID": "🔴"}
+    icon = decision_colors.get(decision, "⚪")
 
-    st.markdown(f"""
-    <div class="opp-card">
-      <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-        <div style="flex:1">
-          <div class="opp-title">{title}</div>
-          <div class="opp-meta">{agency} &nbsp;·&nbsp; NAICS {naics} {naics_desc} &nbsp;·&nbsp; Set-aside: {set_aside}</div>
-          <div class="opp-meta" style="margin-top:4px;">Deadline: {deadline or "—"} &nbsp;&nbsp; {link_html}</div>
-          {'<div class="opp-meta" style="margin-top:8px;">' + description + '…</div>' if description else ''}
-        </div>
-        <div style="text-align:center; min-width:80px; padding-left:16px;">
-          <div class="score-big">{score:.0f}</div>
-          <div>{badge(decision)}</div>
-        </div>
-      </div>
-    </div>
-    """, unsafe_allow_html=True)
+    with st.container(border=True):
+        col_main, col_score = st.columns([5, 1])
+        with col_main:
+            st.markdown(f"**{title}**")
+            st.caption(f"{agency} · NAICS {naics} {naics_desc} · Set-aside: {set_aside}")
+            deadline_str = f"Deadline: {deadline}" if deadline else ""
+            link_str = f"[View on SAM.gov →]({link})" if link else ""
+            st.caption(f"{deadline_str}{'  ' if deadline_str and link_str else ''}{link_str}")
+            if description:
+                st.caption(description + "…")
+        with col_score:
+            st.markdown(f"### {score:.0f}")
+            st.markdown(f"{icon} **{decision}**")
 
 
 # ── Views ────────────────────────────────────────────────────────────────────

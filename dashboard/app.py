@@ -9,7 +9,7 @@ load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "ingestion"))
 
 st.set_page_config(
-    page_title="GovContract Radar",
+    page_title="Contract Fit Engine",
     page_icon="🎯",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -72,7 +72,7 @@ def search_opportunities(query: str, top: int = 20) -> list[dict]:
 
 # ── Sidebar ──────────────────────────────────────────────────────────────────
 with st.sidebar:
-    st.markdown("## 🎯 GovContract Radar")
+    st.markdown("## 🎯 Contract Fit Engine")
     st.markdown("---")
 
     view = st.radio("View", ["Opportunity Feed", "Search", "Analytics"], label_visibility="collapsed")

@@ -221,7 +221,7 @@ Keep it practical and specific. No generic advice."""
     response = client.chat.completions.create(
         model=deployment,
         messages=[{"role": "user", "content": prompt}],
-        max_tokens=500,
+        max_completion_tokens=500,
         temperature=0.3,
     )
     return response.choices[0].message.content
@@ -242,7 +242,7 @@ def chat(messages: list, profile: dict = None) -> tuple[str, dict, dict]:
         messages=full_messages,
         tools=TOOLS,
         tool_choice="auto",
-        max_tokens=800,
+        max_completion_tokens=800,
         temperature=0.4,
     )
 
@@ -275,7 +275,7 @@ def chat(messages: list, profile: dict = None) -> tuple[str, dict, dict]:
                 {"role": "assistant", "content": None, "tool_calls": msg.tool_calls},
                 {"role": "tool", "tool_call_id": tool_call.id, "content": tool_result},
             ],
-            max_tokens=600,
+            max_completion_tokens=600,
             temperature=0.4,
         )
         response_text = follow_up.choices[0].message.content

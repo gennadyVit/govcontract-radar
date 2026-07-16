@@ -86,9 +86,11 @@ with st.sidebar:
     score_min = st.slider("Min Fit Score", 0, 100, 50)
 
     st.markdown("### Company Profile")
-    profile_name = st.selectbox("Profile", ["technova", "startup"], format_func=lambda x: {
+    profile_name = st.selectbox("Profile", ["technova", "startup", "apexeng", "cyberops"], format_func=lambda x: {
         "technova": "TechNova Solutions (8(a), $100K–$10M)",
         "startup": "BluePath Tech (SBA, $50K–$500K)",
+        "apexeng": "Apex Engineering Group (SBA, $200K–$20M)",
+        "cyberops": "CyberOps Federal Solutions (8(a), $500K–$50M)",
     }.get(x, x))
 
     st.markdown("---")

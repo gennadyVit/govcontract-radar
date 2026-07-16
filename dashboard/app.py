@@ -371,22 +371,46 @@ elif st.session_state.page == "find":
 
     st.markdown('<div class="section-label">Find Opportunities</div>', unsafe_allow_html=True)
     st.markdown('<div class="section-title">Tell me about your company</div>', unsafe_allow_html=True)
-    st.markdown('<div class="section-sub">Describe what your company does — our AI agent will ask follow-up questions, then score 1,387 federal opportunities against your profile.</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-sub">Describe what your company does. The AI agent will ask follow-up questions, then score 1,387 federal opportunities against your profile.</div>', unsafe_allow_html=True)
 
-    if not st.session_state.chat_messages:
-        st.markdown("""
-**Example prompts to get started:**
-- *We're an 8(a) IT firm specializing in software development and cloud migration. Contracts from $100K to $10M.*
-- *Small SBA-certified engineering company, electrical and mechanical systems, facility sustainment, $200K–$20M.*
-- *Cybersecurity firm with SECRET clearance, network security and PKI, working with DoD and DHS, $500K–$50M.*
-""")
+    if not st.session_state.chat_messages and not st.session_state.chat_results:
+        col_ex, col_chat = st.columns([1, 1], gap="large")
 
-    st.markdown("---")
+        with col_ex:
+            st.markdown("**Example company descriptions:**")
+            examples = [
+                ("IT / Software", "541511 · 8(a) · $100K–$10M", "We're an 8(a) certified IT firm doing software development, cloud migration, and data analytics for DoD and VA."),
+                ("Engineering", "541330 · SBA · $200K–$20M", "Small SBA engineering company specializing in electrical systems, mechanical design, and facility sustainment."),
+                ("Cybersecurity", "541512 · 8(a) · $500K–$50M", "8(a) cybersecurity firm with SECRET clearance offering network security and PKI support to DoD and DHS."),
+                ("Construction", "236220 · SBA · $500K–$15M", "SBA-certified general contractor focused on federal facility renovation and new construction in the Southeast."),
+                ("Logistics", "488510 · SDVOSB · $250K–$5M", "SDVOSB logistics company providing supply chain management and transportation coordination for military bases."),
+                ("IT Startup", "541511 · SBA · $50K–$500K", "Small SBA software startup in Texas building web applications and database systems, new to federal contracting."),
+            ]
+            r1, r2 = st.columns(2)
+            for i, (title, meta, desc) in enumerate(examples):
+                col = r1 if i % 2 == 0 else r2
+                with col:
+                    st.markdown(
+                        f"""<div style="border:1px solid #e2e8f0;border-radius:8px;padding:14px 16px;margin-bottom:12px;background:#f8fafc;">
+                        <div style="font-weight:600;font-size:14px;margin-bottom:4px;">{title}</div>
+                        <div style="font-size:11px;color:#64748b;margin-bottom:8px;">{meta}</div>
+                        <div style="font-size:13px;color:#374151;">{desc}</div>
+                        </div>""",
+                        unsafe_allow_html=True,
+                    )
 
-    # ── Chat history ──────────────────────────────────────────────────────────
-    for msg in st.session_state.chat_messages:
-        with st.chat_message(msg["role"]):
-            st.markdown(msg["content"])
+        with col_chat:
+            st.markdown("**Describe your company:**")
+            st.markdown(
+                '<div style="color:#64748b;font-size:14px;margin-bottom:16px;">Type in the chat box below. Include your industry, certifications, contract size range, and past agency experience if you have it.</div>',
+                unsafe_allow_html=True,
+            )
+
+    else:
+        # Chat history when conversation is underway
+        for msg in st.session_state.chat_messages:
+            with st.chat_message(msg["role"]):
+                st.markdown(msg["content"])
 
     # ── If we have scoring results, show them below chat ──────────────────────
     if st.session_state.chat_results:

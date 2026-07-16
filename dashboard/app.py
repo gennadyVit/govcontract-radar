@@ -402,12 +402,39 @@ elif st.session_state.page == "find":
         with col_chat:
             st.markdown("**Describe your company:**")
             st.markdown(
-                '<div style="color:#64748b;font-size:14px;margin-bottom:16px;">Type in the chat box below. Include your industry, certifications, contract size range, and past agency experience if you have it.</div>',
+                '<div style="color:#64748b;font-size:14px;margin-bottom:12px;">Include your industry, certifications (SBA, 8(a), SDVOSB…), contract size range, and any past agency experience.</div>',
                 unsafe_allow_html=True,
             )
+            user_input = st.text_area(
+                label="Company description",
+                label_visibility="collapsed",
+                placeholder="Example: We're an 8(a) IT firm specializing in software development and cloud migration. We work with DoD and VA. Contracts typically $100K–$10M.",
+                height=280,
+                key="chat_textarea",
+            )
+            if st.button("Find My Opportunities →", type="primary", use_container_width=True):
+                if user_input.strip():
+                    st.session_state.chat_messages.append({"role": "user", "content": user_input.strip()})
+                    try:
+                        from agent import chat as agent_chat
+                        with st.spinner("Thinking…"):
+                            response_text, updated_profile, scoring_results = agent_chat(
+                                st.session_state.chat_messages,
+                                st.session_state.chat_profile,
+                            )
+                        st.session_state.chat_messages.append({"role": "assistant", "content": response_text})
+                        if updated_profile:
+                            st.session_state.chat_profile = updated_profile
+                        if scoring_results:
+                            st.session_state.chat_results = scoring_results
+                    except Exception as e:
+                        st.session_state.chat_messages.append({"role": "assistant", "content": f"Agent error: {e}"})
+                    st.rerun()
+                else:
+                    st.warning("Please describe your company first.")
 
     else:
-        # Chat history when conversation is underway
+        # Active conversation view
         for msg in st.session_state.chat_messages:
             with st.chat_message(msg["role"]):
                 st.markdown(msg["content"])
@@ -489,9 +516,9 @@ elif st.session_state.page == "find":
             st.session_state.chat_results = None
             st.rerun()
 
-    # ── Chat input ────────────────────────────────────────────────────────────
-    if not st.session_state.chat_results:
-        user_input = st.chat_input("Describe your company or answer the agent's question…")
+    # ── Follow-up chat input (after initial submission, during conversation) ──
+    if st.session_state.chat_messages and not st.session_state.chat_results:
+        user_input = st.chat_input("Answer the agent's follow-up question…")
         if user_input:
             st.session_state.chat_messages.append({"role": "user", "content": user_input})
             try:

@@ -373,21 +373,13 @@ elif st.session_state.page == "find":
     st.markdown('<div class="section-title">Tell me about your company</div>', unsafe_allow_html=True)
     st.markdown('<div class="section-sub">Describe what your company does — our AI agent will ask follow-up questions, then score 1,387 federal opportunities against your profile.</div>', unsafe_allow_html=True)
 
-    # Quick-start demo buttons (still useful for demos)
     if not st.session_state.chat_messages:
-        st.markdown("**Quick start — try a sample company:**")
-        demo_cols = st.columns(4)
-        DEMO_STARTERS = {
-            "Demo IT Firm": "We're an 8(a) certified IT firm specializing in software development, cloud migration, and data analytics. We work with agencies like DoD and VA. Our contracts typically range from $100K to $10M.",
-            "Demo Engineering Firm": "We're a small engineering company focused on electrical and mechanical systems, construction, and facility sustainment. We're SBA certified. Our typical contracts are $200K to $20M.",
-            "Demo Cybersecurity Firm": "We're an 8(a) cybersecurity firm offering network security, PKI, and IT infrastructure support. We hold SECRET clearance and work with DoD and DHS. Contracts from $500K to $50M.",
-            "Demo Small IT Startup": "We're a small SBA-certified software company in Texas doing web development and database work. We're new to federal contracting, looking for smaller contracts under $500K.",
-        }
-        for i, (label, starter_text) in enumerate(DEMO_STARTERS.items()):
-            with demo_cols[i]:
-                if st.button(label, use_container_width=True, key=f"demo_{i}"):
-                    st.session_state.chat_messages.append({"role": "user", "content": starter_text})
-                    st.rerun()
+        st.markdown("""
+**Example prompts to get started:**
+- *We're an 8(a) IT firm specializing in software development and cloud migration. Contracts from $100K to $10M.*
+- *Small SBA-certified engineering company, electrical and mechanical systems, facility sustainment, $200K–$20M.*
+- *Cybersecurity firm with SECRET clearance, network security and PKI, working with DoD and DHS, $500K–$50M.*
+""")
 
     st.markdown("---")
 
@@ -504,7 +496,7 @@ elif st.session_state.page == "tech":
 
     st.markdown('<div class="section-label">Under the Hood</div>', unsafe_allow_html=True)
     st.markdown('<div class="section-title">How Contract Fit Engine works</div>', unsafe_allow_html=True)
-    st.markdown('<div class="section-sub">From raw SAM.gov data to a ranked, scored opportunity feed — fully automated, weekly refresh.</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-sub">From raw SAM.gov data to a ranked, scored opportunity feed. Fully automated, weekly refresh.</div>', unsafe_allow_html=True)
 
     # ── Stats bar ─────────────────────────────────────────────────────────────
     s1, s2, s3 = st.columns(3)

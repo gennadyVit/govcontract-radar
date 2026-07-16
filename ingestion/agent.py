@@ -222,7 +222,6 @@ Keep it practical and specific. No generic advice."""
         model=deployment,
         messages=[{"role": "user", "content": prompt}],
         max_completion_tokens=500,
-        temperature=0.3,
     )
     return response.choices[0].message.content
 
@@ -243,7 +242,6 @@ def chat(messages: list, profile: dict = None) -> tuple[str, dict, dict]:
         tools=TOOLS,
         tool_choice="auto",
         max_completion_tokens=800,
-        temperature=0.4,
     )
 
     msg = response.choices[0].message
@@ -276,8 +274,7 @@ def chat(messages: list, profile: dict = None) -> tuple[str, dict, dict]:
                 {"role": "tool", "tool_call_id": tool_call.id, "content": tool_result},
             ],
             max_completion_tokens=600,
-            temperature=0.4,
-        )
+            )
         response_text = follow_up.choices[0].message.content
     else:
         response_text = msg.content

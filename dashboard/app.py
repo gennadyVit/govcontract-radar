@@ -415,12 +415,13 @@ elif st.session_state.page == "find":
                     '<div style="color:#64748b;font-size:14px;margin-bottom:12px;">Include your industry, certifications (SBA, 8(a), SDVOSB…), contract size range, and any past agency experience.</div>',
                     unsafe_allow_html=True,
                 )
+            input_key = f"chat_textarea_{len(st.session_state.chat_messages)}"
             user_input = st.text_area(
                 label="input",
                 label_visibility="collapsed",
                 placeholder="We're an 8(a) IT firm specializing in software development and cloud migration. We work with DoD and VA. Contracts typically $100K–$10M.",
                 height=280,
-                key="chat_textarea",
+                key=input_key,
             )
             btn_label = "Find My Opportunities →" if not st.session_state.chat_messages else "Send →"
             if st.button(btn_label, type="primary", use_container_width=True):

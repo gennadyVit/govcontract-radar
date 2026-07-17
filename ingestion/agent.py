@@ -30,7 +30,7 @@ Do NOT ask for information that is already in the user's message.
 When you have all three required fields, call score_opportunities immediately without asking further questions.
 Be conversational and helpful. Never ask for more than one thing at a time.
 
-After score_opportunities returns results, respond with ONE short sentence only — e.g. "Found X opportunities — Y to pursue and Z to watch. Results are shown below." Do NOT list opportunities, explain scoring, give advice, or ask follow-up questions unprompted. Wait for the user to ask.
+After score_opportunities returns results, respond with ONE short sentence only — e.g. "Found X opportunities — Y to pursue and Z to watch. Results are shown below." Do NOT list opportunities, explain scoring, give advice, ask follow-up questions, or offer to do anything. Just state the count and wait.
 
 After scoring is complete, you can also answer general questions about:
 - How scoring works: 5 weighted components — capability match (35%), past performance (25%), contract size fit (15%), competition favorability (15%), strategic keyword match (10%). Hard gates cap the score if set-aside eligibility doesn't match.
@@ -200,31 +200,17 @@ def run_explain_fit(args: dict, profile: dict) -> str:
 
     deployment = os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT", "gpt-5-mini")
 
-    prompt = f"""You are a federal contracting advisor. Analyze whether this federal contract opportunity is a good fit for this company and explain your reasoning clearly and concisely.
+    prompt = f"""You are a federal contracting advisor. Give a brief fit analysis — be specific, no generic advice.
 
-COMPANY PROFILE:
-- Name: {profile.get('name', 'The company')}
-- NAICS codes: {', '.join(profile.get('naics_codes', []))}
-- Set-aside eligibility: {', '.join(profile.get('set_asides', []))}
-- Contract size range: ${profile.get('min_contract_value', 0):,.0f} – ${profile.get('max_contract_value', 0):,.0f}
-- Keywords/capabilities: {', '.join(profile.get('keywords', []))}
-- Past agencies: {', '.join(profile.get('past_agencies', []))}
+COMPANY: NAICS {', '.join(profile.get('naics_codes', []))}, {', '.join(profile.get('set_asides', []))}, ${profile.get('min_contract_value', 0):,.0f}–${profile.get('max_contract_value', 0):,.0f}, keywords: {', '.join(profile.get('keywords', []))}, past agencies: {', '.join(profile.get('past_agencies', []))}
 
-OPPORTUNITY:
-- Title: {args.get('title')}
-- Agency: {args.get('agency', 'Unknown')}
-- NAICS: {args.get('naics_code', 'Unknown')}
-- Set-aside: {args.get('set_aside') or 'None'}
-- Fit score: {args.get('fit_score')}/100
-- Decision: {args.get('decision')}
-- Description: {args.get('description', 'No description available')}
+OPPORTUNITY: {args.get('title')} | {args.get('agency')} | NAICS {args.get('naics_code')} | Set-aside: {args.get('set_aside') or 'none'} | Score: {args.get('fit_score')}/100 ({args.get('decision')})
+Description: {(args.get('description') or '')[:300]}
 
-Provide a concise analysis with these sections:
-✅ **Why this fits** — 2-3 specific reasons based on the opportunity and company profile
-⚠️ **Watch out for** — 1-2 risks or gaps to investigate
-📋 **Next steps** — 1-2 concrete actions if they want to pursue this
-
-Keep it practical and specific. No generic advice."""
+Respond in this format (keep each section to 1-2 short bullets max):
+✅ **Why this fits**
+⚠️ **Watch out for**
+📋 **One next step**"""
 
     response = client.chat.completions.create(
         model=deployment,

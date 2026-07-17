@@ -120,15 +120,15 @@ def run_score_opportunities(args: dict) -> dict:
     from snowflake_conn import get_connection
 
     profile = {
-        "name": args.get("company_name", "Your Company"),
-        "naics_codes": args.get("naics_codes", []),
-        "set_asides": args.get("set_asides", []),
+        "name": args.get("company_name") or "Your Company",
+        "naics_codes": [x for x in (args.get("naics_codes") or []) if x],
+        "set_asides": [x for x in (args.get("set_asides") or []) if x],
         "clearances": [],
-        "min_contract_value": args.get("min_contract_value", 0),
-        "max_contract_value": args.get("max_contract_value", 10_000_000),
-        "keywords": args.get("keywords", []),
-        "past_agencies": args.get("past_agencies", []),
-        "location_states": args.get("location_states", []),
+        "min_contract_value": args.get("min_contract_value") or 0,
+        "max_contract_value": args.get("max_contract_value") or 10_000_000,
+        "keywords": [x for x in (args.get("keywords") or []) if x],
+        "past_agencies": [x for x in (args.get("past_agencies") or []) if x],
+        "location_states": [x for x in (args.get("location_states") or []) if x],
         "embedding": None,
     }
 

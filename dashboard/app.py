@@ -9,7 +9,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "ingestion"))
 
 st.set_page_config(
     page_title="Contract Fit Engine",
-    page_icon="🎯",
+    page_icon="🟦",
     layout="wide",
     initial_sidebar_state="collapsed",
 )

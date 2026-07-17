@@ -30,6 +30,8 @@ Do NOT ask for information that is already in the user's message.
 When you have all three required fields, call score_opportunities immediately without asking further questions.
 Be conversational and helpful. Never ask for more than one thing at a time.
 
+After score_opportunities returns results, respond with ONE short sentence only — e.g. "Found X opportunities — Y to pursue and Z to watch. Results are shown below." Do NOT list opportunities, explain scoring, give advice, or ask follow-up questions unprompted. Wait for the user to ask.
+
 After scoring is complete, you can also answer general questions about:
 - How scoring works: 5 weighted components — capability match (35%), past performance (25%), contract size fit (15%), competition favorability (15%), strategic keyword match (10%). Hard gates cap the score if set-aside eligibility doesn't match.
 - Data freshness: opportunities are pulled weekly from SAM.gov. The last extract runs every Monday.
@@ -300,7 +302,7 @@ def chat(messages: list, profile: dict = None, scoring_done: bool = False) -> tu
     # Fallback if model returned nothing
     if not response_text.strip():
         if scoring_results:
-            response_text = f"I've scored {scoring_results['total']} opportunities against your profile. Found {scoring_results['pursue_count']} to PURSUE and {scoring_results['watch_count']} to WATCH. See the results below — click 'Why does this fit me?' on any card for a detailed analysis."
+            response_text = f"Found {scoring_results['pursue_count']} to pursue and {scoring_results['watch_count']} to watch. Results are shown below."
         elif scoring_done:
             response_text = "Scoring uses 5 weighted components: capability match (35%), past performance (25%), contract size fit (15%), competition favorability (15%), and keyword match (10%). Hard eligibility gates cap the score if your set-aside status doesn't match the opportunity's requirements."
         else:

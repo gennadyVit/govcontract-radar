@@ -373,10 +373,11 @@ elif st.session_state.page == "find":
     st.markdown('<div class="section-title">Tell me about your company</div>', unsafe_allow_html=True)
     st.markdown('<div class="section-sub">Describe what your company does. The AI agent will ask follow-up questions, then score 1,387 federal opportunities against your profile.</div>', unsafe_allow_html=True)
 
-    if not st.session_state.chat_messages and not st.session_state.chat_results:
-        col_ex, col_chat = st.columns([1, 1], gap="large")
+    col_left, col_right = st.columns([1, 1], gap="large")
 
-        with col_ex:
+    with col_left:
+        if not st.session_state.chat_messages:
+            # Show examples before conversation starts
             st.markdown("**Example company descriptions:**")
             examples = [
                 ("IT / Software", "541511 · 8(a) · $100K–$10M", "We're an 8(a) certified IT firm doing software development, cloud migration, and data analytics for DoD and VA."),
@@ -398,21 +399,31 @@ elif st.session_state.page == "find":
                         </div>""",
                         unsafe_allow_html=True,
                     )
+        else:
+            # Show chat history once conversation is underway
+            st.markdown("**Conversation:**")
+            for msg in st.session_state.chat_messages:
+                with st.chat_message(msg["role"]):
+                    st.markdown(msg["content"])
 
-        with col_chat:
-            st.markdown("**Describe your company:**")
-            st.markdown(
-                '<div style="color:#64748b;font-size:14px;margin-bottom:12px;">Include your industry, certifications (SBA, 8(a), SDVOSB…), contract size range, and any past agency experience.</div>',
-                unsafe_allow_html=True,
-            )
+    with col_right:
+        if not st.session_state.chat_results:
+            label = "**Describe your company:**" if not st.session_state.chat_messages else "**Answer the agent's question:**"
+            st.markdown(label)
+            if not st.session_state.chat_messages:
+                st.markdown(
+                    '<div style="color:#64748b;font-size:14px;margin-bottom:12px;">Include your industry, certifications (SBA, 8(a), SDVOSB…), contract size range, and any past agency experience.</div>',
+                    unsafe_allow_html=True,
+                )
             user_input = st.text_area(
-                label="Company description",
+                label="input",
                 label_visibility="collapsed",
-                placeholder="Example: We're an 8(a) IT firm specializing in software development and cloud migration. We work with DoD and VA. Contracts typically $100K–$10M.",
+                placeholder="We're an 8(a) IT firm specializing in software development and cloud migration. We work with DoD and VA. Contracts typically $100K–$10M.",
                 height=280,
                 key="chat_textarea",
             )
-            if st.button("Find My Opportunities →", type="primary", use_container_width=True):
+            btn_label = "Find My Opportunities →" if not st.session_state.chat_messages else "Send →"
+            if st.button(btn_label, type="primary", use_container_width=True):
                 if user_input.strip():
                     st.session_state.chat_messages.append({"role": "user", "content": user_input.strip()})
                     try:
@@ -431,13 +442,14 @@ elif st.session_state.page == "find":
                         st.session_state.chat_messages.append({"role": "assistant", "content": f"Agent error: {e}"})
                     st.rerun()
                 else:
-                    st.warning("Please describe your company first.")
-
-    else:
-        # Active conversation view
-        for msg in st.session_state.chat_messages:
-            with st.chat_message(msg["role"]):
-                st.markdown(msg["content"])
+                    st.warning("Please enter a response first.")
+        else:
+            st.markdown("**Scoring complete.** See results below.")
+            if st.button("← Start New Search", key="new_search_right"):
+                st.session_state.chat_messages = []
+                st.session_state.chat_profile = None
+                st.session_state.chat_results = None
+                st.rerun()
 
     # ── If we have scoring results, show them below chat ──────────────────────
     if st.session_state.chat_results:
@@ -509,34 +521,6 @@ elif st.session_state.page == "find":
                 if explain_key in st.session_state:
                     st.info(st.session_state[explain_key])
 
-        # New search
-        if st.button("← Start New Search", key="new_search"):
-            st.session_state.chat_messages = []
-            st.session_state.chat_profile = None
-            st.session_state.chat_results = None
-            st.rerun()
-
-    # ── Follow-up chat input (after initial submission, during conversation) ──
-    if st.session_state.chat_messages and not st.session_state.chat_results:
-        user_input = st.chat_input("Answer the agent's follow-up question…")
-        if user_input:
-            st.session_state.chat_messages.append({"role": "user", "content": user_input})
-            try:
-                from agent import chat as agent_chat
-                with st.spinner("Thinking…"):
-                    response_text, updated_profile, scoring_results = agent_chat(
-                        st.session_state.chat_messages,
-                        st.session_state.chat_profile,
-                    )
-                st.session_state.chat_messages.append({"role": "assistant", "content": response_text})
-                if updated_profile:
-                    st.session_state.chat_profile = updated_profile
-                if scoring_results:
-                    st.session_state.chat_results = scoring_results
-            except Exception as e:
-                err = f"Agent error: {e}"
-                st.session_state.chat_messages.append({"role": "assistant", "content": err})
-            st.rerun()
 
 
 # ════════════════════════════════════════════════════════════════════════════

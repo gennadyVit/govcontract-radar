@@ -196,7 +196,7 @@ def run_explain_fit(args: dict, profile: dict) -> str:
     """Generate RAG explanation for a specific opportunity."""
     client = get_client()
 
-    deployment = os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT", "gpt-4o")
+    deployment = os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT", "gpt-5-mini")
 
     prompt = f"""You are a federal contracting advisor. Analyze whether this federal contract opportunity is a good fit for this company and explain your reasoning clearly and concisely.
 

@@ -20,6 +20,17 @@ st.markdown("""
   [data-testid="collapsedControl"] { display: none; }
   section[data-testid="stSidebar"] { display: none; }
 
+  /* Primary buttons — match site blue */
+  .stButton > button[kind="primary"] {
+    background-color: #1d4ed8 !important;
+    border-color: #1d4ed8 !important;
+    color: white !important;
+  }
+  .stButton > button[kind="primary"]:hover {
+    background-color: #1e40af !important;
+    border-color: #1e40af !important;
+  }
+
   .hero {
     background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 60%, #1d4ed8 100%);
     border-radius: 16px;

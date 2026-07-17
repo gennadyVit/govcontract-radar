@@ -226,12 +226,18 @@ Keep it practical and specific. No generic advice."""
 
     response = client.chat.completions.create(
         model=deployment,
-        messages=[{"role": "user", "content": prompt}],
+        messages=[
+            {"role": "system", "content": "You are a federal contracting advisor. Always respond with a detailed analysis."},
+            {"role": "user", "content": prompt},
+        ],
         max_completion_tokens=600,
     )
-    content = response.choices[0].message.content
+    msg = response.choices[0].message
+    content = msg.content
     if not content or not content.strip():
-        return "Analysis not available — the model returned an empty response. Try again."
+        # Surface diagnostics so we can debug
+        finish = response.choices[0].finish_reason
+        return f"Model returned empty content (finish_reason={finish}). refusal={getattr(msg, 'refusal', None)}"
     return content
 
 

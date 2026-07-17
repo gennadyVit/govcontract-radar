@@ -364,192 +364,132 @@ if st.session_state.page == "home":
 
 
 # ════════════════════════════════════════════════════════════════════════════
-# FIND BIDS PAGE — Conversational AI Agent
+# FIND BIDS PAGE — Single-column ChatGPT-style
 # ════════════════════════════════════════════════════════════════════════════
 elif st.session_state.page == "find":
     nav()
 
-    st.markdown('<div class="section-label">Find Opportunities</div>', unsafe_allow_html=True)
-    st.markdown('<div class="section-title">Tell me about your company</div>', unsafe_allow_html=True)
-    st.markdown('<div class="section-sub">Describe what your company does. The AI agent will ask follow-up questions, then score 1,387 federal opportunities against your profile.</div>', unsafe_allow_html=True)
+    # ── Example cards (shown only before conversation starts) ─────────────────
+    if not st.session_state.chat_messages:
+        st.markdown('<div class="section-title" style="text-align:center;margin-bottom:8px;">Tell me about your company</div>', unsafe_allow_html=True)
+        st.markdown('<div style="text-align:center;color:#64748b;margin-bottom:32px;">Describe what your company does — the agent will ask follow-up questions, then score 1,387 federal opportunities against your profile.</div>', unsafe_allow_html=True)
 
-    col_left, col_right = st.columns([1, 1], gap="large")
-
-    with col_left:
-        if not st.session_state.chat_messages:
-            # Show examples before conversation starts
-            st.markdown("**Example company descriptions:**")
-            examples = [
-                ("IT / Software", "541511 · 8(a) · $100K–$10M", "We're an 8(a) certified IT firm doing software development, cloud migration, and data analytics for DoD and VA."),
-                ("Engineering", "541330 · SBA · $200K–$20M", "Small SBA engineering company specializing in electrical systems, mechanical design, and facility sustainment."),
-                ("Cybersecurity", "541512 · 8(a) · $500K–$50M", "8(a) cybersecurity firm with SECRET clearance offering network security and PKI support to DoD and DHS."),
-                ("Construction", "236220 · SBA · $500K–$15M", "SBA-certified general contractor focused on federal facility renovation and new construction in the Southeast."),
-                ("Logistics", "488510 · SDVOSB · $250K–$5M", "SDVOSB logistics company providing supply chain management and transportation coordination for military bases."),
-                ("IT Startup", "541511 · SBA · $50K–$500K", "Small SBA software startup in Texas building web applications and database systems, new to federal contracting."),
-            ]
-            r1, r2 = st.columns(2)
-            for i, (title, meta, desc) in enumerate(examples):
-                col = r1 if i % 2 == 0 else r2
-                with col:
-                    st.markdown(
-                        f"""<div style="border:1px solid #e2e8f0;border-radius:8px;padding:14px 16px;margin-bottom:12px;background:#f8fafc;">
-                        <div style="font-weight:600;font-size:14px;margin-bottom:4px;">{title}</div>
-                        <div style="font-size:11px;color:#64748b;margin-bottom:8px;">{meta}</div>
-                        <div style="font-size:13px;color:#374151;">{desc}</div>
-                        </div>""",
-                        unsafe_allow_html=True,
-                    )
-        else:
-            # Show chat history once conversation is underway
-            st.markdown("**Conversation:**")
-            for msg in st.session_state.chat_messages:
-                with st.chat_message(msg["role"]):
-                    st.markdown(msg["content"])
-
-    with col_right:
-        if not st.session_state.chat_results:
-            label = "**Describe your company:**" if not st.session_state.chat_messages else "**Answer the agent's question:**"
-            st.markdown(label)
-            if not st.session_state.chat_messages:
+        examples = [
+            ("🖥️ IT / Software", "8(a) · 541511 · $100K–$10M", "We're an 8(a) IT firm doing software development and cloud migration for DoD and VA."),
+            ("⚙️ Engineering", "SBA · 541330 · $200K–$20M", "Small SBA engineering firm specializing in electrical systems and facility sustainment."),
+            ("🔒 Cybersecurity", "8(a) · 541512 · $500K–$50M", "8(a) cybersecurity firm with SECRET clearance offering network security and PKI support."),
+            ("🏗️ Construction", "SBA · 236220 · $500K–$15M", "SBA general contractor focused on federal facility renovation in the Southeast."),
+        ]
+        c1, c2, c3, c4 = st.columns(4, gap="small")
+        for col, (title, meta, desc) in zip([c1, c2, c3, c4], examples):
+            with col:
                 st.markdown(
-                    '<div style="color:#64748b;font-size:14px;margin-bottom:12px;">Include your industry, certifications (SBA, 8(a), SDVOSB…), contract size range, and any past agency experience.</div>',
+                    f"""<div style="border:1px solid #e2e8f0;border-radius:10px;padding:16px;background:#f8fafc;height:140px;">
+                    <div style="font-weight:600;font-size:13px;margin-bottom:4px;">{title}</div>
+                    <div style="font-size:11px;color:#64748b;margin-bottom:8px;">{meta}</div>
+                    <div style="font-size:12px;color:#374151;line-height:1.4;">{desc}</div>
+                    </div>""",
                     unsafe_allow_html=True,
                 )
-            input_key = f"chat_textarea_{len(st.session_state.chat_messages)}"
-            user_input = st.text_area(
-                label="input",
-                label_visibility="collapsed",
-                placeholder="We're an 8(a) IT firm specializing in software development and cloud migration. We work with DoD and VA. Contracts typically $100K–$10M.",
-                height=280,
-                key=input_key,
-            )
-            btn_label = "Find My Opportunities →" if not st.session_state.chat_messages else "Send →"
-            if st.button(btn_label, type="primary", use_container_width=True):
-                if user_input.strip():
-                    st.session_state.chat_messages.append({"role": "user", "content": user_input.strip()})
-                    try:
-                        from agent import chat as agent_chat
-                        with st.spinner("Thinking…"):
-                            response_text, updated_profile, scoring_results = agent_chat(
-                                st.session_state.chat_messages,
-                                st.session_state.chat_profile,
-                            )
-                        st.session_state.chat_messages.append({"role": "assistant", "content": response_text})
-                        if updated_profile:
-                            st.session_state.chat_profile = updated_profile
-                        if scoring_results:
-                            st.session_state.chat_results = scoring_results
-                    except Exception as e:
-                        st.session_state.chat_messages.append({"role": "assistant", "content": f"Agent error: {e}"})
-                    st.rerun()
-                else:
-                    st.warning("Please enter a response first.")
-        else:
-            st.markdown("**Ask a follow-up question:**")
-            st.markdown(
-                '<div style="color:#64748b;font-size:14px;margin-bottom:12px;">Ask about scoring, data freshness, how to interpret results, or anything else.</div>',
-                unsafe_allow_html=True,
-            )
-            followup_key = f"followup_{len(st.session_state.chat_messages)}"
-            followup_input = st.text_area(
-                label="followup",
-                label_visibility="collapsed",
-                placeholder="e.g. How was the scoring calculated? When was the data last updated? What does WATCH mean?",
-                height=140,
-                key=followup_key,
-            )
-            if st.button("Send →", type="primary", use_container_width=True, key="send_followup"):
-                if followup_input.strip():
-                    st.session_state.chat_messages.append({"role": "user", "content": followup_input.strip()})
-                    try:
-                        from agent import chat as agent_chat
-                        with st.spinner("Thinking…"):
-                            response_text, _, _ = agent_chat(
-                                st.session_state.chat_messages,
-                                st.session_state.chat_profile,
-                                scoring_done=True,
-                            )
-                        st.session_state.chat_messages.append({"role": "assistant", "content": response_text})
-                    except Exception as e:
-                        st.session_state.chat_messages.append({"role": "assistant", "content": f"Error: {e}"})
-                    st.rerun()
-            if st.button("← Start New Search", key="new_search_right"):
-                st.session_state.chat_messages = []
-                st.session_state.chat_profile = None
-                st.session_state.chat_results = None
-                st.rerun()
+        st.markdown("<br>", unsafe_allow_html=True)
 
-    # ── If we have scoring results, show them below chat ──────────────────────
+    # ── Chat history ──────────────────────────────────────────────────────────
+    for msg in st.session_state.chat_messages:
+        with st.chat_message(msg["role"]):
+            st.markdown(msg["content"])
+
+    # ── Inline results inside chat ────────────────────────────────────────────
     if st.session_state.chat_results:
-        results = st.session_state.chat_results
         profile = st.session_state.chat_profile or {}
-
-        st.markdown("---")
-        st.markdown(f"### Results for {profile.get('name', 'Your Company')}")
-
-        m1, m2, m3 = st.columns(3)
-        m1.metric("Scored", results["total"])
-        m2.metric("PURSUE", results["pursue_count"])
-        m3.metric("WATCH", results["watch_count"])
-
-        fc1, fc2 = st.columns([2, 1])
-        with fc1:
-            decision_filter = st.multiselect(
-                "Decision", ["PURSUE", "WATCH", "NO_BID"], default=["PURSUE", "WATCH"], key="chat_filter"
-            )
-        with fc2:
-            score_min = st.slider("Min score", 0, 100, 50, key="chat_score_min")
-
+        results = st.session_state.chat_results
         top = results["top_results"]
-        filtered = [r for r in top if r["decision"] in decision_filter and r["fit_score"] >= score_min]
-        st.caption(f"Showing {len(filtered)} of top 20 results")
 
-        for opp in filtered:
-            with st.container(border=True):
-                badge_color = {"PURSUE": "#16a34a", "WATCH": "#d97706", "NO_BID": "#6b7280"}.get(opp["decision"], "#6b7280")
-                left, right = st.columns([5, 1])
-                with left:
-                    st.markdown(f"**{opp['title'] or 'Untitled'}**")
-                    st.caption(f"{opp['agency']} · NAICS {opp['naics_code']} · {opp.get('set_aside') or 'Open'} · Due {opp['deadline'] or 'TBD'}")
-                    desc = opp.get("description", "")
-                    if desc and not desc.startswith("http"):
-                        st.markdown(f"<small>{desc[:250]}…</small>", unsafe_allow_html=True)
-                with right:
-                    st.markdown(
-                        f'<div style="text-align:center;background:{badge_color};color:white;border-radius:8px;padding:8px 4px;font-weight:700;">'
-                        f'{opp["fit_score"]}<br><small>{opp["decision"]}</small></div>',
-                        unsafe_allow_html=True,
-                    )
-                    if opp.get("ui_link"):
-                        st.link_button("SAM.gov →", opp["ui_link"], use_container_width=True)
+        with st.chat_message("assistant"):
+            fc1, fc2 = st.columns([2, 1])
+            with fc1:
+                decision_filter = st.multiselect(
+                    "Filter", ["PURSUE", "WATCH", "NO_BID"], default=["PURSUE", "WATCH"], key="chat_filter"
+                )
+            with fc2:
+                score_min = st.slider("Min score", 0, 100, 50, key="chat_score_min")
 
-                # "Why does this fit?" button
-                btn_key = f"explain_{opp['notice_id']}"
-                explain_key = f"explain_text_{opp['notice_id']}"
-                if explain_key not in st.session_state:
-                    if st.button("Why does this fit me?", key=btn_key):
-                        from agent import run_explain_fit
-                        with st.spinner("Generating fit analysis…"):
-                            try:
-                                explanation = run_explain_fit(
-                                    {
-                                        "notice_id": opp["notice_id"],
-                                        "title": opp["title"],
-                                        "description": opp["description"],
-                                        "agency": opp["agency"],
-                                        "naics_code": opp["naics_code"],
-                                        "set_aside": opp["set_aside"],
-                                        "fit_score": opp["fit_score"],
-                                        "decision": opp["decision"],
-                                    },
-                                    profile,
-                                )
-                            except Exception as e:
-                                explanation = f"Error: {e}"
-                        st.session_state[explain_key] = explanation
-                        st.rerun()
-                else:
-                    st.markdown(st.session_state[explain_key])
+            filtered = [r for r in top if r["decision"] in decision_filter and r["fit_score"] >= score_min]
+            st.caption(f"Showing {len(filtered)} of top 20 results")
+
+            for opp in filtered:
+                with st.container(border=True):
+                    badge_color = {"PURSUE": "#16a34a", "WATCH": "#d97706", "NO_BID": "#6b7280"}.get(opp["decision"], "#6b7280")
+                    left, right = st.columns([5, 1])
+                    with left:
+                        st.markdown(f"**{opp['title'] or 'Untitled'}**")
+                        st.caption(f"{opp['agency']} · NAICS {opp['naics_code']} · {opp.get('set_aside') or 'Open'} · Due {opp['deadline'] or 'TBD'}")
+                        desc = opp.get("description", "")
+                        if desc and not desc.startswith("http"):
+                            st.markdown(f"<small>{desc[:250]}…</small>", unsafe_allow_html=True)
+                    with right:
+                        st.markdown(
+                            f'<div style="text-align:center;background:{badge_color};color:white;border-radius:8px;padding:8px 4px;font-weight:700;">'
+                            f'{opp["fit_score"]}<br><small>{opp["decision"]}</small></div>',
+                            unsafe_allow_html=True,
+                        )
+                        if opp.get("ui_link"):
+                            st.link_button("SAM.gov →", opp["ui_link"], use_container_width=True)
+
+                    btn_key = f"explain_{opp['notice_id']}"
+                    explain_key = f"explain_text_{opp['notice_id']}"
+                    if explain_key not in st.session_state:
+                        if st.button("Why does this fit me?", key=btn_key):
+                            from agent import run_explain_fit
+                            with st.spinner("Generating fit analysis…"):
+                                try:
+                                    explanation = run_explain_fit(
+                                        {
+                                            "notice_id": opp["notice_id"],
+                                            "title": opp["title"],
+                                            "description": opp["description"],
+                                            "agency": opp["agency"],
+                                            "naics_code": opp["naics_code"],
+                                            "set_aside": opp["set_aside"],
+                                            "fit_score": opp["fit_score"],
+                                            "decision": opp["decision"],
+                                        },
+                                        profile,
+                                    )
+                                except Exception as e:
+                                    explanation = f"Error: {e}"
+                            st.session_state[explain_key] = explanation
+                            st.rerun()
+                    else:
+                        st.markdown(st.session_state[explain_key])
+
+        if st.button("← Start New Search", key="new_search"):
+            st.session_state.chat_messages = []
+            st.session_state.chat_profile = None
+            st.session_state.chat_results = None
+            st.rerun()
+
+    # ── Chat input (always visible until results shown) ───────────────────────
+    scoring_done = st.session_state.chat_results is not None
+    placeholder = "Ask a follow-up question about scoring, results, or data…" if scoring_done else "Describe your company — industry, certifications, contract size, past agencies…"
+    user_input = st.chat_input(placeholder)
+    if user_input:
+        st.session_state.chat_messages.append({"role": "user", "content": user_input})
+        try:
+            from agent import chat as agent_chat
+            with st.spinner("Thinking…"):
+                response_text, updated_profile, scoring_results = agent_chat(
+                    st.session_state.chat_messages,
+                    st.session_state.chat_profile,
+                    scoring_done=scoring_done,
+                )
+            st.session_state.chat_messages.append({"role": "assistant", "content": response_text})
+            if updated_profile:
+                st.session_state.chat_profile = updated_profile
+            if scoring_results:
+                st.session_state.chat_results = scoring_results
+        except Exception as e:
+            st.session_state.chat_messages.append({"role": "assistant", "content": f"Agent error: {e}"})
+        st.rerun()
 
 
 

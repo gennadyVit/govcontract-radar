@@ -301,6 +301,8 @@ def chat(messages: list, profile: dict = None, scoring_done: bool = False) -> tu
     if not response_text.strip():
         if scoring_results:
             response_text = f"I've scored {scoring_results['total']} opportunities against your profile. Found {scoring_results['pursue_count']} to PURSUE and {scoring_results['watch_count']} to WATCH. See the results below — click 'Why does this fit me?' on any card for a detailed analysis."
+        elif scoring_done:
+            response_text = "Scoring uses 5 weighted components: capability match (35%), past performance (25%), contract size fit (15%), competition favorability (15%), and keyword match (10%). Hard eligibility gates cap the score if your set-aside status doesn't match the opportunity's requirements."
         else:
             response_text = "Got it. Could you tell me your NAICS code(s)? For example, 541511 for custom software development."
 

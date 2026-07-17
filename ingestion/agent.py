@@ -232,7 +232,7 @@ def chat(messages: list, profile: dict = None) -> tuple[str, dict, dict]:
     Returns (response_text, updated_profile, scoring_results)
     """
     client = get_client()
-    deployment = os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT", "gpt-4o")
+    deployment = os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT", "gpt-5-mini")
 
     full_messages = [{"role": "system", "content": SYSTEM_PROMPT}] + messages
 
@@ -266,17 +266,20 @@ def chat(messages: list, profile: dict = None) -> tuple[str, dict, dict]:
         else:
             tool_result = "Tool not found."
 
-        # Send tool result back to model for final response
         follow_up = client.chat.completions.create(
             model=deployment,
             messages=full_messages + [
                 {"role": "assistant", "content": None, "tool_calls": msg.tool_calls},
                 {"role": "tool", "tool_call_id": tool_call.id, "content": tool_result},
             ],
-            max_completion_tokens=600,
-            )
-        response_text = follow_up.choices[0].message.content
+            max_completion_tokens=800,
+        )
+        response_text = follow_up.choices[0].message.content or ""
     else:
-        response_text = msg.content
+        response_text = msg.content or ""
+
+    # Fallback if model returned nothing
+    if not response_text.strip():
+        response_text = "I received your description. Could you tell me what NAICS codes your company is registered under? (e.g. 541511 for custom software development)"
 
     return response_text, profile, scoring_results
